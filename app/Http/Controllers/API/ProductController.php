@@ -12,7 +12,7 @@ class ProductController extends Controller
     public function all(Request $request)
     {
         $id = $request->input('id');
-        $limit = $request->input('limit');
+        $limit = $request->input('limit', 6);
         $name = $request->input('id');
         $description = $request->input('description');
         $tags = $request->input('tags');
@@ -22,9 +22,9 @@ class ProductController extends Controller
         $price_to = $request->input('price_to');
 
         if ($id) {
-            $product = Product::with('category', 'galleries')->find($id);
+            $product = Product::with(['category', 'galleries'])->find($id);
 
-            if ('product') {
+            if ($product) {
                 return ResponseFormatter::success(
                     $product,
                     'Data produk berhasil diambil'
@@ -33,7 +33,7 @@ class ProductController extends Controller
                 return ResponseFormatter::error(
                     null,
                     'Data produk tidak ada',
-                    484
+                    404
                 );
             }
         }

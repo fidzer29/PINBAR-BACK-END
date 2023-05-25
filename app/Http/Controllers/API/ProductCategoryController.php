@@ -17,9 +17,9 @@ class ProductCategoryController extends Controller
         $show_product = $request->input('show_product');
 
         if ($id) {
-            $category = ProductCategory::with('products')->find($id);
+            $category = ProductCategory::with(['products'])->find($id);
 
-            if ('category') {
+            if ($category) {
                 return ResponseFormatter::success(
                     $category,
                     'Data kategori berhasil diambil'
@@ -28,7 +28,7 @@ class ProductCategoryController extends Controller
                 return ResponseFormatter::error(
                     null,
                     'Data kategori tidak ada',
-                    484
+                    404
                 );
             }
         }

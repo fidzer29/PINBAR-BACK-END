@@ -7,9 +7,9 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use App\Helpers\ResponseFormatter;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Fortify\Rules\Password;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
@@ -20,7 +20,7 @@ class UserController extends Controller
                 'name' => ['required', 'string', 'max:255'],
                 'username' => ['required', 'string', 'max:255', 'unique:users'],
                 'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-                'phone' => ['required', 'string', 'max:255'],
+                // 'phone' => ['required', 'string', 'max:255'],
                 'password' => ['required', 'string', new Password],
             ]);
 
@@ -44,60 +44,59 @@ class UserController extends Controller
         } catch (Exception $error) {
             return ResponseFormatter::error([
                 'message' => 'Something went wrong',
-                'error' => $error,
+                'error' => $error
             ], 'Authentication Failed', 500);
         }
     }
 
     public function login(Request $request)
     {
-        try{
-            $request ->validate([
-                'email'=>'email|required',
+        try {
+            $request->validate([
+                'email' => 'email|required',
                 'password' => 'required'
             ]);
-            $credentials=request(['emai', 'password']);
-            if(!Auth::attempt($credentials))
-            {
+
+            $credentials = request(['email', 'password']);
+            if (!Auth::attempt($credentials)) {
                 return ResponseFormatter::error([
-                    'message'=> 'Unauthorized'
-                ],'Authentication Failed', 500
-            );
+                    'message' => 'Unauthorized'
+                ], 'Authentication Failed', 500);
             }
+
             $user = User::where('email', $request->email)->first();
-            if(! Hash::check($request->password, $user->password,[])){
-                throw new \Exception('invalid Credentials');
+
+            if (!Hash::check($request->password, $user->password, [])) {
+                throw new \Exception('Invalid Credentials');
             }
+
             $tokenResult = $user->createToken('authToken')->plainTextToken;
             return ResponseFormatter::success([
-                'access_token'=> $tokenResult,
+                'access_token' => $tokenResult,
                 'token_type' => 'Bearer',
                 'user' => $user
-            ], "Authenticated"
-        );
-
-        }catch(Exception $error){
+            ], 'Authenticated');
+        } catch (Exception $error) {
             return ResponseFormatter::error([
-                'message'=> 'Something went wrong',
-                'error' => $error
-            ],'Authentication Failed', 500
-        );
+                'message' => 'Something went wrong',
+                'error' => $error,
+            ], 'Authentication Failed', 500);
         }
     }
 
     public function fetch(Request $request)
     {
-        return ResponseFormatter::success($request->user(), 'Data user berhasil diambil');
+        return ResponseFormatter::success($request->user(), 'Data profile user berhasil diambil');
     }
 
     public function updateProfil(Request $request)
     {
         $data = $request->all();
-        
-        $user = Auth::user();
-        $user ->update($data);
 
-        return ResponseFormatter::success($user, 'Profil update');
+        $user = Auth::user();
+        $user->update($data);
+
+        return ResponseFormatter::success($user, 'Profil updated');
     }
 
     public function logout(Request $request)
@@ -106,4 +105,3 @@ class UserController extends Controller
         return ResponseFormatter::success($token, 'Token revoked');
     }
 }
-
